@@ -6,29 +6,15 @@
 #![allow(clippy::result_large_err)]
 #![allow(dead_code)]
 
-mod child;
 mod cli;
 mod commands;
 mod config;
 pub mod devtools;
-mod engine;
 #[cfg(feature = "heap-dhat")]
 mod heap_profile;
 
-mod boundaries;
-mod microfrontends;
-mod opts;
-mod package_changes_watcher;
 mod panic_handler;
-mod rayon_compat;
-mod repository_graph;
-mod run;
 mod shim;
-mod task_change_detector;
-mod task_graph;
-mod task_hash;
-mod tracing;
-mod turbo_json;
 
 // Re-export daemon types from the new crate location
 pub use turborepo_daemon::{
@@ -37,7 +23,7 @@ pub use turborepo_daemon::{
 };
 pub use turborepo_query_api::QueryServer;
 
-pub use crate::{child::spawn_child, cli::Args, panic_handler::panic_handler};
+pub use crate::{cli::Args, panic_handler::panic_handler};
 
 #[cfg(feature = "heap-dhat")]
 pub fn finish_heap_profile() {

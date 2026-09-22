@@ -430,14 +430,13 @@ mod test {
     use anyhow::Result;
     use tempfile::{NamedTempFile, TempDir};
     use turbopath::AbsoluteSystemPathBuf;
+    use turborepo_run_opts::Opts;
     use turborepo_ui::ColorConfig;
     use turborepo_vercel_api_mock::start_test_server;
 
     use crate::{
         commands::{link, CommandBase},
         config::TurborepoConfigBuilder,
-        opts::Opts,
-        Args,
     };
 
     #[tokio::test]
@@ -485,7 +484,7 @@ mod test {
             .build()?;
 
         let mut base = CommandBase::from_opts(
-            Opts::new(&repo_root, &Args::default(), config)?,
+            Opts::new(&repo_root, &Default::default(), &Default::default(), config)?,
             repo_root.clone(),
             "1.0.0",
             ColorConfig::new(false),

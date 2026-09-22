@@ -3,11 +3,12 @@ use std::io;
 use thiserror::Error;
 use turbopath::{AbsoluteSystemPath, AbsoluteSystemPathBuf};
 use turborepo_microfrontends::TurborepoMfeConfig;
+use turborepo_microfrontends_config::MicrofrontendsConfigs;
 use turborepo_repository::package_graph::{
     PackageGraph, PackageGraphNodeKind, PackageName, PackageNode,
 };
 
-use crate::{commands::CommandBase, microfrontends::MicrofrontendsConfigs};
+use crate::commands::CommandBase;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -48,7 +49,9 @@ async fn get_port_for_current_package(base: &CommandBase) -> Result<u16, Error> 
 
 async fn build_package_graph(base: &CommandBase) -> Result<PackageGraph, Error> {
     let repo_root = &base.repo_root;
-    let features = crate::repository_graph::RepositoryGraphFeatures::new(&base.opts().future_flags);
+    let features = turborepo_package_watcher::repository_graph::RepositoryGraphFeatures::new(
+        &base.opts().future_flags,
+    );
     let root_package_json = features.load_root_package_json(repo_root)?;
 
     let builder = PackageGraph::builder_optional(repo_root, root_package_json)
@@ -148,10 +151,11 @@ fn get_port_from_graph(
 #[cfg(test)]
 mod tests {
     use tempfile::TempDir;
+    use turborepo_run_opts::Opts;
     use turborepo_ui::ColorConfig;
 
     use super::*;
-    use crate::{config::TurborepoConfigBuilder, opts::Opts, Args};
+    use crate::config::TurborepoConfigBuilder;
 
     fn setup_test_repo(tmp: &TempDir) -> AbsoluteSystemPathBuf {
         let repo_root = AbsoluteSystemPathBuf::try_from(tmp.path().to_path_buf()).unwrap();
@@ -191,9 +195,9 @@ mod tests {
         repo_root: AbsoluteSystemPathBuf,
         cargo_enabled: bool,
     ) -> CommandBase {
-        let args = Args::default();
         let config = TurborepoConfigBuilder::new(&repo_root).build().unwrap();
-        let mut opts = Opts::new(&repo_root, &args, config).unwrap();
+        let mut opts =
+            Opts::new(&repo_root, &Default::default(), &Default::default(), config).unwrap();
         opts.future_flags.experimental_cargo_workspaces = cargo_enabled;
 
         CommandBase::from_opts(opts, repo_root, "test-version", ColorConfig::new(false))

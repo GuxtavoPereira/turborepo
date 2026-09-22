@@ -11,17 +11,15 @@ use turborepo_devtools::{
     package_graph_to_data, GraphData, GraphEdge, RepositoryGraphBuilder, TaskGraphData,
     TaskGraphError, TaskNode,
 };
+use turborepo_microfrontends_config::UnifiedTurboJsonLoader;
+use turborepo_package_watcher::repository_graph::RepositoryGraphFeatures;
 use turborepo_repository::package_graph::{PackageGraph, PackageGraphBuilder, PackageName};
+use turborepo_run::{EngineBuilder, EngineTurboJsonLoader, TaskNode as EngineTaskNode};
+use turborepo_run_opts::Opts;
 use turborepo_task_id::TaskName;
+use turborepo_turbo_json::TurboJsonReader;
 
-use crate::{
-    commands::CommandBase,
-    engine::{EngineBuilder, TaskNode as EngineTaskNode},
-    opts::Opts,
-    repository_graph::RepositoryGraphFeatures,
-    turbo_json::{TurboJsonReader, UnifiedTurboJsonLoader},
-    Args,
-};
+use crate::{commands::CommandBase, Args};
 
 /// Task graph builder that uses the proper `EngineBuilder` logic.
 ///
@@ -51,7 +49,8 @@ impl ProperTaskGraphBuilder {
                 root_turbo_json_path, self.repo_root
             )));
         }
-        Opts::new(&self.repo_root, &self.args, config)
+        let (run_selector, execution_selector) = self.args.selectors();
+        Opts::new(&self.repo_root, &run_selector, &execution_selector, config)
             .map_err(|error| TaskGraphError::BuildError(error.to_string()))
     }
 
@@ -144,10 +143,11 @@ impl ProperTaskGraphBuilder {
 
         // Build engine with all tasks
         // We use `add_all_tasks` to get the complete task graph for visualization
+        let engine_loader = EngineTurboJsonLoader::new(&loader);
         let engine = EngineBuilder::new(
             &self.repo_root,
             pkg_graph,
-            &loader,
+            &engine_loader,
             opts.run_opts.single_package,
         )
         .with_workspaces(workspaces)

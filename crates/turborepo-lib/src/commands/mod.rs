@@ -4,15 +4,12 @@ use turbopath::{AbsoluteSystemPath, AbsoluteSystemPathBuf};
 use turborepo_api_client::{APIAuth, APIClient};
 use turborepo_auth::{TURBO_TOKEN_DIR, TURBO_TOKEN_FILE};
 use turborepo_dirs::config_dir;
+use turborepo_run_opts::Opts;
 use turborepo_ui::ColorConfig;
 
 use crate::{
-    cli,
-    config::{
-        resolve_configuration_from_args, resolve_turbo_config_path, ConfigurationOptions,
-        Error as ConfigError,
-    },
-    opts::Opts,
+    cli::{self, resolve_configuration_from_args},
+    config::{resolve_turbo_config_path, ConfigurationOptions, Error as ConfigError},
     Args,
 };
 
@@ -52,7 +49,8 @@ impl CommandBase {
         color_config: ColorConfig,
     ) -> Result<Self, cli::Error> {
         let config = Self::load_config(&repo_root, &args)?;
-        let opts = Opts::new(&repo_root, &args, config)?;
+        let (run_selector, execution_selector) = args.selectors();
+        let opts = Opts::new(&repo_root, &run_selector, &execution_selector, config)?;
 
         Ok(Self {
             repo_root,
@@ -86,6 +84,16 @@ impl CommandBase {
 
     pub fn opts(&self) -> &Opts {
         &self.opts
+    }
+
+    pub fn run_builder_input(&self) -> Result<turborepo_run::RunBuilderInput, ConfigError> {
+        Ok(turborepo_run::RunBuilderInput {
+            repo_root: self.repo_root.clone(),
+            color_config: self.color_config,
+            opts: self.opts.clone(),
+            version: self.version,
+            api_auth: self.api_auth()?,
+        })
     }
 
     // Getting all of the paths.

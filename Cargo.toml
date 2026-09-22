@@ -66,6 +66,7 @@ turborepo-auth = { path = "crates/turborepo-auth" }
 turborepo-cache = { path = "crates/turborepo-cache" }
 turborepo-ai-agents = { path = "crates/turborepo-ai-agents" }
 turborepo-ci = { path = "crates/turborepo-ci" }
+turborepo-config = { path = "crates/turborepo-config" }
 turborepo-daemon = { path = "crates/turborepo-daemon" }
 turborepo-engine = { path = "crates/turborepo-engine" }
 turborepo-env = { path = "crates/turborepo-env" }
@@ -82,36 +83,42 @@ turborepo-lsp = { path = "crates/turborepo-lsp", default-features = false }
 turborepo-lockfiles = { path = "crates/turborepo-lockfiles" }
 turborepo-log = { path = "crates/turborepo-log" }
 turborepo-microfrontends = { path = "crates/turborepo-microfrontends" }
+turborepo-microfrontends-config = { path = "crates/turborepo-microfrontends-config" }
 turborepo-microfrontends-proxy = { path = "crates/turborepo-microfrontends-proxy" }
+turborepo-package-watcher = { path = "crates/turborepo-package-watcher" }
 turborepo-process = { path = "crates/turborepo-process" }
+turborepo-prune = { path = "crates/turborepo-prune" }
 turborepo-query = { path = "crates/turborepo-query" }
 turborepo-query-api = { path = "crates/turborepo-query-api" }
 turborepo-profile-md = { path = "crates/turborepo-profile-md" }
 turborepo-repository = { path = "crates/turborepo-repository" }
-turborepo-sccache-proxy = { path = "crates/turborepo-sccache-proxy" }
-# Vercel fork of mozilla/sccache (v0.16.0 + the `main_from_args` embedding
-# entrypoint from the `vercel/main-from-args` branch). Public, so anonymous
-# builds fetch it; the rev is pinned for reproducibility.
-sccache = { git = "https://github.com/vercel/sccache", rev = "52bfcd03ee7fa94059d0af593d466a464254307e", default-features = false, features = [
-  "webdav",
-] }
 turborepo-task-id = { path = "crates/turborepo-task-id" }
+turborepo-telemetry = { path = "crates/turborepo-telemetry" }
+turborepo-tracing = { path = "crates/turborepo-tracing" }
 turborepo-types = { path = "crates/turborepo-types" }
 turborepo-ui = { path = "crates/turborepo-ui" }
 turborepo-unescape = { path = "crates/turborepo-unescape" }
+turborepo-run-cache = { path = "crates/turborepo-run-cache" }
 turborepo-run-summary = { path = "crates/turborepo-run-summary" }
 turborepo-scm = { path = "crates/turborepo-scm" }
 turborepo-scope = { path = "crates/turborepo-scope" }
 turborepo-signals = { path = "crates/turborepo-signals" }
+turborepo-task-access = { path = "crates/turborepo-task-access" }
 turborepo-task-executor = { path = "crates/turborepo-task-executor" }
+turborepo-task-filter = { path = "crates/turborepo-task-filter" }
+turborepo-task-graph = { path = "crates/turborepo-task-graph" }
 turborepo-task-hash = { path = "crates/turborepo-task-hash" }
 turborepo-turbo-json = { path = "crates/turborepo-turbo-json" }
 turborepo-otel = { path = "crates/turborepo-otel" }
 turborepo-rayon-compat = { path = "crates/turborepo-rayon-compat" }
+turborepo-run = { path = "crates/turborepo-run", default-features = false }
+turborepo-run-context = { path = "crates/turborepo-run-context" }
+turborepo-run-opts = { path = "crates/turborepo-run-opts" }
 wax = { path = "crates/turborepo-wax" }
 turborepo-shim = { path = "crates/turborepo-shim" }
 turborepo-vercel-api = { path = "crates/turborepo-vercel-api" }
 turborepo-vercel-api-mock = { path = "crates/turborepo-vercel-api-mock" }
+turborepo-watch = { path = "crates/turborepo-watch", default-features = false }
 turborepo-ghostty = { path = "crates/turborepo-ghostty" }
 libghostty-vt = "0.2.1"
 

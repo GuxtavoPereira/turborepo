@@ -28,7 +28,7 @@ pub enum Error {
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
     #[error(transparent)]
-    TurboJsonParse(#[from] crate::turbo_json::parser::Error),
+    TurboJsonParse(#[from] turborepo_turbo_json::parser::BiomeParseError),
 }
 
 pub async fn login(
@@ -190,17 +190,17 @@ mod tests {
 
     use tempfile::tempdir;
     use turbopath::AbsoluteSystemPathBuf;
+    use turborepo_run_opts::Opts;
     use turborepo_ui::ColorConfig;
 
     use super::*;
-    use crate::{config::TurborepoConfigBuilder, opts::Opts, Args};
+    use crate::config::TurborepoConfigBuilder;
 
     static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     fn create_command_base(repo_root: AbsoluteSystemPathBuf) -> CommandBase {
-        let args = Args::default();
         let config = TurborepoConfigBuilder::new(&repo_root).build().unwrap();
-        let opts = Opts::new(&repo_root, &args, config).unwrap();
+        let opts = Opts::new(&repo_root, &Default::default(), &Default::default(), config).unwrap();
 
         CommandBase::from_opts(opts, repo_root, "test-version", ColorConfig::new(false))
     }

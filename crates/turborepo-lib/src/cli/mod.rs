@@ -11,7 +11,9 @@ use turborepo_telemetry::{
     events::{command::CommandEventBuilder, generic::GenericEventBuilder, EventBuilder},
     init_telemetry, TelemetryHandle,
 };
+use turborepo_tracing::{inject_trace_metadata, TurboSubscriber};
 use turborepo_ui::{ColorConfig, GREY};
+use turborepo_watch::WatchClient;
 
 use crate::{
     cli::error::print_potential_tasks,
@@ -20,11 +22,10 @@ use crate::{
         ls, prune, query, run, telemetry, unlink, CommandBase,
     },
     get_version,
-    run::watch::WatchClient,
-    tracing::TurboSubscriber,
 };
 
 mod args;
+mod configuration;
 mod error;
 mod observability;
 #[cfg(test)]
@@ -37,6 +38,7 @@ pub use args::{
     GraphOutput, LogOrderArg, LogPrefixArg, LsArgs, NonEmptyPath, OutputFormat, OutputLogsModeArg,
     QuerySubcommand, RunArgs, TelemetryCommand, Verbosity,
 };
+pub(crate) use configuration::resolve_configuration_from_args;
 
 fn exit_with_heap_profile(code: i32) -> ! {
     #[cfg(feature = "heap-dhat")]
@@ -51,21 +53,21 @@ pub const INVOCATION_DIR_ENV_VAR: &str = "TURBO_INVOCATION_DIR";
 
 /// Returns a scaled thread count for rayon's global pool based on
 /// available CPU cores, capped at
-/// [`crate::rayon_compat::MAX_RAYON_THREADS`].
+/// [`turborepo_rayon_compat::MAX_RAYON_THREADS`].
 ///
 /// See [`init_rayon_pool`] and <https://github.com/vercel/turborepo/issues/12251>
 fn rayon_pool_size() -> usize {
     let cpus = std::thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(1);
-    crate::rayon_compat::scale_thread_count(cpus)
+    turborepo_rayon_compat::scale_thread_count(cpus)
 }
 
 /// Explicitly initialize rayon's global thread pool early so we control
 /// its size and initialization timing.
 ///
 /// If `RAYON_NUM_THREADS` is set, its value is still clamped to
-/// [`crate::rayon_compat::MAX_RAYON_THREADS`] to prevent the known
+/// [`turborepo_rayon_compat::MAX_RAYON_THREADS`] to prevent the known
 /// deadlock on high-core-count machines.
 fn init_rayon_pool() {
     let pool_size = match std::env::var("RAYON_NUM_THREADS")
@@ -73,12 +75,12 @@ fn init_rayon_pool() {
         .and_then(|v| v.parse().ok())
     {
         Some(user_val) => {
-            let clamped = crate::rayon_compat::scale_thread_count(user_val);
+            let clamped = turborepo_rayon_compat::scale_thread_count(user_val);
             if clamped < user_val {
                 tracing::debug!(
                     requested = user_val,
                     clamped,
-                    max = crate::rayon_compat::MAX_RAYON_THREADS,
+                    max = turborepo_rayon_compat::MAX_RAYON_THREADS,
                     "RAYON_NUM_THREADS exceeds safe limit, clamping"
                 );
             }
@@ -690,7 +692,7 @@ async fn run_main(
 
             let verbosity: u8 = cli_args.verbosity.into();
             let mut client = WatchClient::new(
-                base,
+                base.run_builder_input()?,
                 *experimental_write_cache,
                 event,
                 query_server.clone(),
@@ -700,7 +702,7 @@ async fn run_main(
             .await?;
             match client.start().await {
                 Ok(()) => {}
-                Err(crate::run::watch::Error::SignalInterrupt) => {
+                Err(turborepo_watch::Error::SignalInterrupt) => {
                     // Normal shutdown via Ctrl+C — not an error.
                 }
                 Err(e) => {
@@ -774,8 +776,7 @@ fn finalize_chrome_profile(logger: &TurboSubscriber, version: &str) {
 
     let _ = logger.flush_chrome_tracing();
 
-    if let Err(e) = crate::tracing::inject_trace_metadata(std::path::Path::new(&file_path), version)
-    {
+    if let Err(e) = inject_trace_metadata(std::path::Path::new(&file_path), version) {
         warn!("Failed to inject trace metadata: {e}");
     }
 
